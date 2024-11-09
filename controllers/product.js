@@ -83,7 +83,23 @@ exports.searchproduct = async (req, res) => {
     res.status(500).send(error);
   }
 };
+exports.getAllCategories = async (req, res) => { 
+  try { const categories = await Category.find({}); 
+  res.send(categories); 
+} catch (error) { 
+  res.status(500).send(error); 
+} 
+}; 
 
+exports.getAllProducts = async (req, res) => { 
+  try { 
+    const products = await Product.find({});
+     res.send(products);
+     } catch (error) 
+     { 
+      res.status(500).send(error);
+     }
+};
 
 
 // const Category = require('../models/category');
