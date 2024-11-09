@@ -1,7 +1,9 @@
+
 const Product = require('../models/product');
-const Category= require('../models/category');
+const Category = require('../models/category');
 const multer = require('multer');
 const path = require('path');
+
 
 const storage = multer.diskStorage({
   destination: './uploads/',
@@ -12,11 +14,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 1000000 },
+  limits: { fileSize: 1000000 }, 
   fileFilter: (req, file, cb) => {
     checkFileType(file, cb);
   }
-}).array('images', 4); 
+}).array('images', 4);  
 
 
 function checkFileType(file, cb) {
@@ -30,6 +32,8 @@ function checkFileType(file, cb) {
     cb('Error: Images Only!');
   }
 }
+
+
 exports.saveproduct = (req, res) => {
   upload(req, res, (err) => {
     if (err) {
@@ -50,7 +54,9 @@ exports.saveproduct = (req, res) => {
     }
   });
 };
-exports.savecategory = async (req, res) => {
+
+
+exports.savecategory = (req, res) => {
   upload(req, res, (err) => {
     if (err) {
       res.status(400).send(err);
@@ -68,6 +74,7 @@ exports.savecategory = async (req, res) => {
   });
 };
 
+
 exports.searchproduct = async (req, res) => {
   const { query } = req.query;
   try {
@@ -83,71 +90,27 @@ exports.searchproduct = async (req, res) => {
     res.status(500).send(error);
   }
 };
-exports.getAllCategories = async (req, res) => { 
-  try { const categories = await Category.find({}); 
-  res.send(categories); 
-} catch (error) { 
-  res.status(500).send(error); 
-} 
-}; 
 
-exports.getAllProducts = async (req, res) => { 
-  try { 
-    const products = await Product.find({});
-     res.send(products);
-     } catch (error) 
-     { 
-      res.status(500).send(error);
-     }
+
+exports.getAllCategories = async (req, res) => {
+  try {
+    const categories = await Category.find({});
+    res.send(categories);
+  } catch (error) {
+    res.status(500).send(error);
+  }
 };
 
 
-// const Category = require('../models/category');
-// const Product = require('../models/product');
-// const upload  = require('../app');
-// // exports.saveproduct = async (req, res) => {
-// //   const product = new Product(req.body);
-// //   try {
-// //     await product.save();
-// //     res.status(201).send(product);
-// //   } catch (error) {
-// //     res.status(400).send(error);
-// //     console.log(error);
-// //   }
-// // };
-// exports.saveproduct = (req,res) =>{
-//     upload(req, res, (err) => { 
-//     if (err) { res.status(400).send(err);
+exports.getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find({});
+    res.send(products);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};
 
-//      } else { 
-//       const product = new Product({
-//          title: req.body.title, 
-//          description: req.body.description,
-//           image: req.file.path,
-//            price: req.body.price, 
-//            category: req.body.category,
-//            });
-//             product.save()
-//              .then(() => res.status(201).send(product)) 
-//              .catch((error) => res.status(400).send(error)); 
-  
-//           }
-//         });
-// };
 
-// exports.searchproduct = async (req, res) => {
-//   const { query } = req.query;
-//   try {
-//     const products = await Product.find({
-//       $or: [
-//         { title: { $regex: new RegExp(query, 'i') } },
-//         { description: { $regex: new RegExp(query, 'i') } },
-//         { category: { $regex: new RegExp(query, 'i') } },
-//       ],
-//     });
-//     res.send(products);
-//   } catch (error) {
-//     res.status(500).send(error);
-//     console.log(error);
-//   }
-// };
+
+
