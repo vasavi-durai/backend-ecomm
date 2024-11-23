@@ -1,6 +1,4 @@
-
 const Product = require('../models/product');
-const Category = require('../models/category');
 const multer = require('multer');
 const path = require('path');
 
@@ -9,108 +7,99 @@ const storage = multer.diskStorage({
   destination: './uploads/',
   filename: (req, file, cb) => {
     cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-  }
+  },
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 1000000 }, 
+  limits: { fileSize: 1000000 },
   fileFilter: (req, file, cb) => {
     checkFileType(file, cb);
-  }
-}).array('images', 4);  
+  },
+}).array('images', 4);
 
 
 function checkFileType(file, cb) {
   const filetypes = /jpeg|jpg|png|gif/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = filetypes.test(file.mimetype);
-
   if (mimetype && extname) {
-    return cb(null, true);
+    cb(null, true);
   } else {
     cb('Error: Images Only!');
   }
 }
 
-
-exports.saveproduct = (req, res) => {
+exports.saveProduct = (req, res) => {
   upload(req, res, (err) => {
     if (err) {
-      res.status(400).send(err);
-    } else {
-      const images = req.files.map(file => file.path); 
-      const product = new Product({
-        title: req.body.title,
-        description: req.body.description,
-        images: images,
-        price: req.body.price,
-        category: req.body.category,
-      });
-
-      product.save()
-        .then(() => res.status(201).send(product))
-        .catch((error) => res.status(400).send(error));
+      return res.status(400).send(err);
     }
-  });
-};
 
+    const images = req.files.map(file => file.path);
+    const { title, description, price, category } = req.body;
 
-exports.savecategory = (req, res) => {
-  upload(req, res, (err) => {
-    if (err) {
-      res.status(400).send(err);
-    } else {
-      const images = req.files.map(file => file.path); 
-      const category = new Category({
-        title: req.body.title,
-        images: images,
-      });
-
-      category.save()
-        .then(() => res.status(201).send(category))
-        .catch((error) => res.status(400).send(error));
+    let quantity = { selling: 0, balance: 0 };
+    if (req.body.quantity) {
+      quantity = JSON.parse(req.body.quantity);
     }
-  });
-};
 
-
-exports.searchproduct = async (req, res) => {
-  const { query } = req.query;
-  try {
-    const products = await Product.find({
-      $or: [
-        { title: { $regex: new RegExp(query, 'i') } },
-        { description: { $regex: new RegExp(query, 'i') } },
-        { category: { $regex: new RegExp(query, 'i') } },
-      ],
+    const product = new Product({
+      title,
+      description,
+      images,
+      price,
+      category: category || '1',
+      quantity: {
+        selling: quantity.selling || 0,
+        balance: quantity.balance || 0,
+      },
     });
-    res.send(products);
-  } catch (error) {
-    res.status(500).send(error);
-  }
+
+    product.save()
+      .then(() => res.status(201).send(product))
+      .catch(error => res.status(400).send(error));
+  });
 };
 
+exports.updateProduct = async (req, res) => {
+  const { id } = req.params; 
+  const { title, description, price, category, quantity } = req.body;
 
-exports.getAllCategories = async (req, res) => {
   try {
-    const categories = await Category.find({});
-    res.send(categories);
+    const updatedData = {
+      title,
+      description,
+      price,
+      category,
+      quantity,
+    };
+
+    const product = await Product.findByIdAndUpdate(id, updatedData, { new: true });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.status(200).json({ message: 'Product updated successfully', product });
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json({ message: 'Error updating product', error });
   }
 };
 
 
-exports.getAllProducts = async (req, res) => {
+exports.deleteProduct = async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const products = await Product.find({});
-    res.send(products);
+    const deletedProduct = await Product.findByIdAndDelete(id);
+
+    if (!deletedProduct) {
+      return res.status(404).send({ message: 'Product not found' });
+    }
+
+    res.status(200).send({ message: 'Product deleted successfully', deletedProduct });
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send({ message: 'Error deleting product', error });
   }
 };
-
-
-
-

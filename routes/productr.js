@@ -1,15 +1,11 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+const saveProductController = require('../controllers/product');
+const { adminOnly } = require('../middleware/auth'); 
 
-var storeproductcontroller = require('../controllers/product');
-var storecategorycontroller = require('../controllers/product');
-var getsearchcontroller = require('../controllers/product');
-var getallcategories = require('../controllers/product');
-var getallproducts = require('../controllers/product');
-router.post('/storep', storeproductcontroller.saveproduct);
-router.get('/search', getsearchcontroller.searchproduct);
-router.post('/storec', storecategorycontroller.savecategory);
-router.get('/getallc', getallcategories.getAllCategories);
-router.get('/getallp', getallproducts.getAllProducts);
+
+router.post('/storep', adminOnly, saveProductController.saveProduct);
+router.put('/updatep/:id', adminOnly, saveProductController.updateProduct); 
+router.delete('/deletep/:id', adminOnly, saveProductController.deleteProduct);
 
 module.exports = router;
